@@ -1,0 +1,196 @@
+<title>The boros tower</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column; the tower chart is the hero, the table and notes follow. */
+:root {
+  --bg: #fbfbfa; --surface: #f2f2ef; --ink: #121417; --ink-2: #4c5058; --ink-3: #7c818a;
+  --rule: #dfe0dc; --bar: #2a78d6; --bar-hover: #1c5cab; --ratio: #b2530f;
+  --display: 'IBM Plex Sans Condensed', 'Arial Narrow', sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --surface: #1d2024; --ink: #f1f2f3; --ink-2: #b9bdc4; --ink-3: #8a8f98;
+    --rule: #2e3237; --bar: #3987e5; --bar-hover: #6da7ec; --ratio: #f09a5b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a; --surface: #1d2024; --ink: #f1f2f3; --ink-2: #b9bdc4; --ink-3: #8a8f98;
+  --rule: #2e3237; --bar: #3987e5; --bar-hover: #6da7ec; --ratio: #f09a5b; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); }
+main { max-width: 860px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px; display: grid; gap: 36px; }
+h1, h2 { font-family: var(--display); font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.05; }
+h2 { font-size: 22px; }
+p { margin: 0; max-width: 65ch; }
+.lede { display: grid; gap: 14px; }
+.lede p { color: var(--ink-2); font-size: 17px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+code, .mono { font-family: var(--mono); font-size: 0.92em; }
+.figure { display: grid; gap: 12px; }
+.chart-wrap { position: relative; overflow-x: auto; }
+svg { display: block; width: 100%; height: auto; min-width: 520px; }
+.axis text, .tick text { fill: var(--ink-3); font: 12px var(--mono); }
+.grid line { stroke: var(--rule); stroke-width: 1; }
+.bar { fill: var(--bar); transition: fill 120ms; }
+.col:hover .bar, .col:focus .bar { fill: var(--bar-hover); }
+.col:focus { outline: none; }
+.col:focus .hit { stroke: var(--ink); stroke-width: 1.5; }
+.hit { fill: transparent; }
+.val { fill: var(--ink); font: 600 13px var(--mono); }
+.ratio { fill: var(--ratio); font: 500 12px var(--mono); }
+.xlab { fill: var(--ink-2); font: 600 13px var(--display); }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); padding: 8px 10px;
+  border-radius: 6px; font: 12px/1.45 var(--mono); white-space: nowrap; transform: translate(-50%, -110%); }
+.caption { color: var(--ink-3); font-size: 13px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.stat { background: var(--surface); padding: 14px 16px; border-radius: 8px; display: grid; gap: 4px; }
+.stat b { font: 600 24px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.stat span { color: var(--ink-2); font-size: 13px; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; min-width: 520px; }
+th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font: 500 12px var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+td { font-family: var(--mono); font-size: 13.5px; }
+.notes { display: grid; gap: 12px; }
+.notes p { color: var(--ink-2); }
+pre { background: var(--surface); padding: 12px 14px; border-radius: 8px; overflow-x: auto; margin: 0; font: 13px/1.6 var(--mono); }
+@media (prefers-reduced-motion: reduce) { .bar { transition: none; } }
+</style>
+
+<main>
+  <header class="lede">
+    <div class="eyebrow">boros · a Python interpreter running itself</div>
+    <h1>How much slower is each level of an interpreter running itself?</h1>
+    <p id="summary"></p>
+  </header>
+
+  <section class="stats" id="stats" aria-label="Key numbers"></section>
+
+  <section class="figure" aria-labelledby="chart-title">
+    <h2 id="chart-title">Time to execute <code>x = x + 1</code>, per level</h2>
+    <div class="chart-wrap" id="chart"></div>
+    <p class="caption">Log scale. L0 is CPython 3.13 running the benchmark; L<i>n</i> is boros running boros … (<i>n</i> copies) running it.
+      The orange labels are the slowdown from one level to the next. Each value is the best of several timed runs of a loop with the
+      statement unrolled ten times, minus an identical empty loop.</p>
+  </section>
+
+  <section class="figure" aria-labelledby="table-title">
+    <h2 id="table-title">The numbers</h2>
+    <div class="table-wrap"><table id="table"></table></div>
+  </section>
+
+  <section class="notes" aria-labelledby="notes-title">
+    <h2 id="notes-title">What is being measured</h2>
+    <p>boros tokenizes, parses and compiles Python into a tree of Python closures and runs them; it never calls the host's
+      <code>eval</code>, <code>exec</code> or <code>compile</code>. Because it is written in the Python it implements, it can run its own
+      source. At level <i>n</i>, every operation of the benchmark is carried out by closures of level <i>n</i>, which are carried out by
+      closures of level <i>n</i>−1, and so on down to CPython.</p>
+    <p id="explain-ratio"></p>
+    <p>Start-up grows too: before running anything, each level parses and compiles the interpreter's own source while being interpreted
+      itself, so the start-up column multiplies by roughly the same factor per level.</p>
+    <pre>uv run python bench/tower.py 3 bench/simple_statement.py   # L3
+uv run python -m boros -m boros -m boros bench/simple_statement.py   # the same thing
+uv run python bench/run_levels.py 5 && uv run python bench/plot_levels.py</pre>
+  </section>
+</main>
+
+<script>
+const DATA = /*DATA*/[];
+
+function human(ns) {
+  const units = [['s', 1e9], ['ms', 1e6], ['µs', 1e3]];
+  for (const [u, s] of units) if (ns >= s) return fmt(ns / s) + ' ' + u;
+  return fmt(ns) + ' ns';
+}
+function fmt(v) { return v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2); }
+function humanSeconds(s) {
+  return s >= 3600 ? (s / 3600).toFixed(1) + ' h' : s >= 60 ? (s / 60).toFixed(1) + ' min'
+    : s >= 1 ? s.toFixed(1) + ' s' : (s * 1000).toFixed(0) + ' ms';
+}
+
+const levels = DATA.slice().sort((a, b) => a.level - b.level);
+const ratios = levels.map((r, i) => i ? r.statement_ns / levels[i - 1].statement_ns : null);
+const last = levels[levels.length - 1];
+const deepRatios = ratios.slice(2).filter(Boolean);
+const geo = deepRatios.length ? Math.exp(deepRatios.reduce((a, r) => a + Math.log(r), 0) / deepRatios.length) : NaN;
+
+document.getElementById('summary').textContent =
+  `A simple statement takes ${human(levels[0].statement_ns)} on CPython and ${human(last.statement_ns)} at level ${last.level}, ` +
+  `with ${last.level} copies of the interpreter stacked on top of each other. Each level multiplies the cost: ` +
+  `×${ratios[1].toFixed(1)} for the first, then between ×${Math.min(...deepRatios).toFixed(1)} and ` +
+  `×${Math.max(...deepRatios).toFixed(1)} for each level after it.`;
+document.getElementById('explain-ratio').textContent =
+  `The first level costs about ${ratios[1].toFixed(1)}× because boros runs the benchmark directly. From level 2 on, what is being ` +
+  `interpreted is mostly the interpreter itself (calling its own closures and reading its own objects), so every further level ` +
+  `multiplies the same kind of work: ${deepRatios.map(r => '×' + r.toFixed(1)).join(', ')}. These factors show no clear ` +
+  `trend: repeated runs on the same machine differ by up to about 15%, and turning off the host's garbage collector ` +
+  `changes nothing.`;
+
+const stats = [
+  [human(levels[0].statement_ns), 'per statement on CPython (L0)'],
+  [human(levels[1].statement_ns), 'under boros (L1), ' + ratios[1].toFixed(1) + '× CPython'],
+  ['×' + Math.round(geo), 'typical cost of one more level (geometric mean from L2 on)'],
+  [human(last.statement_ns), `per statement at L${last.level}`],
+];
+document.getElementById('stats').innerHTML = stats.map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join('');
+
+const table = document.getElementById('table');
+table.innerHTML = '<thead><tr><th>Level</th><th>Per statement</th><th>vs. level below</th><th>vs. CPython</th><th>Start-up</th></tr></thead><tbody>' +
+  levels.map((r, i) => `<tr><td>L${r.level}${r.level === 0 ? ' (CPython)' : ''}</td><td>${human(r.statement_ns)}</td>` +
+    `<td>${i ? '×' + ratios[i].toFixed(1) : '—'}</td><td>×${(r.statement_ns / levels[0].statement_ns).toLocaleString('en-US', {maximumFractionDigits: 0})}</td>` +
+    `<td>${humanSeconds(r.startup_seconds)}</td></tr>`).join('') + '</tbody>';
+
+(function drawChart() {
+  const W = 760, H = 380, m = {l: 64, r: 16, t: 34, b: 40};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const lo = Math.floor(Math.log10(Math.min(...levels.map(r => r.statement_ns))));
+  const hi = Math.ceil(Math.log10(Math.max(...levels.map(r => r.statement_ns))) + 0.35);
+  const y = v => m.t + ih - (Math.log10(v) - lo) / (hi - lo) * ih;
+  const band = iw / levels.length, bw = Math.min(56, band * 0.5);
+  const cx = i => m.l + band * (i + 0.5);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Bar chart of time per statement for each level, log scale">`;
+  s += '<g class="grid">';
+  for (let e = lo; e <= hi; e++) s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(10 ** e)}" y2="${y(10 ** e)}"></line>`;
+  s += '</g><g class="tick">';
+  for (let e = lo; e <= hi; e++) s += `<text x="${m.l - 8}" y="${y(10 ** e) + 4}" text-anchor="end">${human(10 ** e).replace('.00', '')}</text>`;
+  s += '</g>';
+  levels.forEach((r, i) => {
+    const top = y(r.statement_ns), base = m.t + ih, x = cx(i) - bw / 2, h = base - top;
+    const rr = Math.min(4, h / 2);
+    s += `<g class="col" tabindex="0" data-i="${i}" aria-label="Level ${r.level}: ${human(r.statement_ns)} per statement">`;
+    s += `<rect class="hit" x="${cx(i) - band / 2 + 2}" y="${m.t}" width="${band - 4}" height="${ih}"></rect>`;
+    s += `<path class="bar" d="M${x},${base} V${top + rr} Q${x},${top} ${x + rr},${top} H${x + bw - rr} Q${x + bw},${top} ${x + bw},${top + rr} V${base} Z"></path>`;
+    s += `<text class="val" x="${cx(i)}" y="${top - 8}" text-anchor="middle">${human(r.statement_ns)}</text>`;
+    s += `<text class="xlab" x="${cx(i)}" y="${H - 14}" text-anchor="middle">L${r.level}</text></g>`;
+    if (i) {
+      const my = (y(r.statement_ns) + y(levels[i - 1].statement_ns)) / 2;
+      s += `<text class="ratio" x="${m.l + band * i}" y="${my}" text-anchor="middle">×${ratios[i].toFixed(1)}</text>`;
+    }
+  });
+  s += `<line x1="${m.l}" x2="${W - m.r}" y1="${m.t + ih}" y2="${m.t + ih}" stroke="var(--ink-3)"></line></svg>`;
+  const wrap = document.getElementById('chart');
+  wrap.innerHTML = s + '<div class="tip" id="tip" hidden></div>';
+  const tip = document.getElementById('tip');
+  function show(g) {
+    const i = +g.dataset.i, r = levels[i];
+    tip.innerHTML = `<b>L${r.level}</b> ${r.level === 0 ? '(CPython)' : ''}<br>${human(r.statement_ns)} per statement` +
+      (i ? `<br>×${ratios[i].toFixed(1)} vs L${r.level - 1}` : '') + `<br>start-up ${humanSeconds(r.startup_seconds)}`;
+    const box = g.querySelector('.bar').getBoundingClientRect(), w = wrap.getBoundingClientRect();
+    tip.style.left = (box.left + box.width / 2 - w.left + wrap.scrollLeft) + 'px';
+    tip.style.top = (box.top - w.top) + 'px';
+    tip.hidden = false;
+  }
+  wrap.querySelectorAll('.col').forEach(g => {
+    g.addEventListener('mouseenter', () => show(g));
+    g.addEventListener('focus', () => show(g));
+    g.addEventListener('mouseleave', () => { tip.hidden = true; });
+    g.addEventListener('blur', () => { tip.hidden = true; });
+  });
+})();
+</script>

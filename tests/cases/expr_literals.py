@@ -1,0 +1,12 @@
+# Numeric literal forms and constant expressions.
+print(0, 00, 0_0, 1_000, 0x_Ff, 0XAB, 0o17, 0O7_7, 0b1_0, 0B11, 10_000_000_000_000_000_000)
+print(1.5, 1., .5, 1e3, 1E-3, 1_0.0_1, 1e1_0, 0e0, 00.5, 1.5e+3, 3.14j, 1J, 1_0j, .5j, 1e2j, 0j)
+print(type(1e3).__name__, type(10 ** 0).__name__, type(1j).__name__, 1e309, -1e309, 5e-324, 2.5e-324)
+print(0.1, 1/10, 1e16, 1e15, 123456789.123456789, 1.0e-5, 0.0001, 1e22, 1e21, 12345678901234567890.0)
+print(-0, -0.0, +0.0, - - 1, -(-0.0), 0.0 * -1, abs(-0.0))
+print(0xFFFFFFFFFFFFFFFFFFFF, -0x8000000000000000, 0o777777777777777777777, 0b1111111111111111111111111111111111111111111)
+print(9007199254740993, 9007199254740993.0, float(9007199254740993), int(1e20), int(-1e20))
+print(1 if True else 2, [1, 2][-1], (1).real, 1 .imag, 1.0.is_integer(), (1.5).as_integer_ratio())
+print(1 .__class__.__name__, 0.1 + 0.7, 3 * 0.1, 1e-10 * 1e10)
+print(True, False, None, ..., Ellipsis is ..., type(...).__name__, NotImplemented)
+print("a" "b" 'c', "x" * 0, r"\n", b"\x00\xff", "é", "\N{GREEK SMALL LETTER ALPHA}", len("\t\\"))

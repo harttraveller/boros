@@ -1,0 +1,86 @@
+{
+  "0": {
+    "empty_loop_ns": 18.054,
+    "level": 0,
+    "loop_with_statements_ns": 165.562,
+    "n": 1048576,
+    "program_seconds": 1.319,
+    "repeat": 3,
+    "startup_seconds": 0.017389457806944897,
+    "statement_ns": 14.751,
+    "unroll": 10,
+    "wall_seconds": 1.3363894578069448
+  },
+  "1": {
+    "empty_loop_ns": 45.172,
+    "level": 1,
+    "loop_with_statements_ns": 1027.335,
+    "n": 131072,
+    "program_seconds": 0.983,
+    "repeat": 3,
+    "startup_seconds": 0.10566062504239382,
+    "statement_ns": 98.216,
+    "unroll": 10,
+    "wall_seconds": 1.0886606250423938
+  },
+  "2": {
+    "empty_loop_ns": 499.555,
+    "level": 2,
+    "loop_with_statements_ns": 9845.057,
+    "n": 16384,
+    "program_seconds": 1.173,
+    "repeat": 3,
+    "startup_seconds": 0.5042289171349257,
+    "statement_ns": 934.55,
+    "unroll": 10,
+    "wall_seconds": 1.6772289171349257
+  },
+  "3": {
+    "empty_loop_ns": 6352.661,
+    "level": 3,
+    "loop_with_statements_ns": 127960.449,
+    "n": 1024,
+    "program_seconds": 0.97,
+    "repeat": 3,
+    "startup_seconds": 4.487468708960339,
+    "statement_ns": 12160.779,
+    "unroll": 10,
+    "wall_seconds": 5.47586170793511
+  },
+  "4": {
+    "empty_loop_ns": 116784.5,
+    "level": 4,
+    "loop_with_statements_ns": 2023391.939,
+    "n": 64,
+    "program_seconds": 1.038,
+    "repeat": 1,
+    "startup_seconds": 48.08280387491733,
+    "statement_ns": 190660.744,
+    "unroll": 10,
+    "wall_seconds": 49.12080387491733
+  },
+  "5": {
+    "empty_loop_ns": 6943687.506,
+    "level": 5,
+    "loop_with_statements_ns": 28301073.005,
+    "n": 4,
+    "program_seconds": 1.795,
+    "repeat": 1,
+    "startup_seconds": 607.7269250409864,
+    "statement_ns": 2135738.55,
+    "unroll": 10,
+    "wall_seconds": 609.5219250409864
+  },
+  "6": {
+    "empty_loop_ns": 296824666.904,
+    "level": 6,
+    "loop_with_statements_ns": 577211582.8,
+    "n": 1,
+    "program_seconds": 14.639,
+    "repeat": 1,
+    "startup_seconds": 7238.3119682501665,
+    "statement_ns": 28038691.59,
+    "unroll": 10,
+    "wall_seconds": 7252.950968250167
+  }
+}
